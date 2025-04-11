@@ -94,3 +94,7 @@ ParentImage: C:\Python311\python.exe
 CommandLine: "C:\Users\Username\Downloads\svchost.exe"
 ```
 This is a strong indicator of process masquerading and can be used to detect malware that attempts to blend in with system processes.
+
+📸 See screenshots of the detection in the [images/](./images/) folder.  
+📄 Full analysis available in: [suspicious_activity_analysis.md](./suspicious_activity_analysis.md)
+
