@@ -62,48 +62,35 @@ After installation, verify that Sysmon is running by checking the Event Viewer f
 ```
 You should see events for process creation, network connections, and other monitored activities.
 
-## Step 3: Detecting a Suspicious Process Masquerading as svchost.exe 🕵️‍♂️
+## Step 3: Detecting a Fake svchost.exe Process 🕵️‍♂️
 
-In this step, we simulate a scenario where an attacker attempts to run a malicious process that disguises itself as a legitimate Windows service — svchost.exe. This is a common technique used in malware to avoid detection by security tools.
-Scenario: Process Masquerading with Python
+In this step, we simulate a scenario where a malicious actor attempts to disguise a malicious process as the legitimate svchost.exe, which is a common technique used in malware campaigns.
+🔬 Simulation:
 
-The attacker executes a Python script that launches a process with the name svchost.exe. Although the process name appears legitimate, its location and behavior are not consistent with the real Windows svchost.exe.
-Simulation:
-
-We use a custom Python script to simulate this behavior:
+We use a Python script that copies cmd.exe, renames it to svchost.exe, and executes it from a user-controlled directory like Downloads.
+🧪 Execution:
 ```powershell
 python svchost.py
 ```
-Make sure the script runs a child process with the image name svchost.exe from a non-standard directory (e.g., user's Downloads or Desktop).
+This will create a fake process named svchost.exe and run it for a few seconds.
+🔎 Sysmon Detection:
 
-Sysmon Detection:
-
-Once the fake svchost.exe is executed, Sysmon will log the process creation and image load events.
-
-1️⃣ View Process Creation (Event ID 1):
-
-Open Event Viewer:
+Open Event Viewer and navigate to:
 ```nginx
 Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
 ```
-Filter for Event ID 1, and look for suspicious details such as:
+Then, filter for:
 
-. Image Path: The real svchost.exe should be in C:\Windows\System32. If it runs from Downloads, it's likely malicious.
+. Event ID 1 – Process Creation
 
-. Parent Process: A legitimate svchost.exe is usually started by services.exe. If you see python.exe or another unusual parent, it's suspicious.
+. Image: Should not be running from C:\Windows\System32
 
-2️⃣ Look for Additional Events:
+. Parent Process: Typically, real svchost.exe is started by services.exe, not python.exe
 
-. Event ID 7 - Image loaded (DLLs)
-
-. Event ID 11 - File created (if the script creates files)
-
-. Event ID 3 - Network connection (if the process connects to internet)
-
-Example Event Highlights:
+Example Red Flags:
 ```plaintext
-Image: C:\Users\User\Downloads\svchost.exe
+Image: C:\Users\Username\Downloads\svchost.exe
 ParentImage: C:\Python311\python.exe
-CommandLine: "C:\Users\User\Downloads\svchost.exe"
+CommandLine: "C:\Users\Username\Downloads\svchost.exe"
 ```
-This behavior should raise red flags, as it imitates a critical Windows process but originates from a user directory.
+This is a strong indicator of process masquerading and can be used to detect malware that attempts to blend in with system processes.
