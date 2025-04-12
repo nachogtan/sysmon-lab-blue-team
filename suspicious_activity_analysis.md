@@ -1,1 +1,19 @@
+```powershell
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" | Where-Object { $_.Message -like "*svchost.exe*" -and $_.Message -notlike "*System32*" }
+```
+```powershell
+ProviderName: Microsoft-Windows-Sysmon
 
+TimeCreated                      Id LevelDisplayName Message
+-----------                      -- ---------------- -------
+11/04/2025 16:15:44               5 Information      Process terminated:...
+11/04/2025 16:15:34               1 Information      Process Create:...
+11/04/2025 16:15:34              11 Information      File created:...
+11/04/2025 16:15:01               5 Information      Process terminated:...
+11/04/2025 16:14:51               1 Information      Process Create:...
+11/04/2025 16:14:50              11 Information      File created:...
+```
+
+```powershell
+
+```
