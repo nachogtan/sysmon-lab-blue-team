@@ -1,10 +1,10 @@
 ## 🔍 Detection
-As part of a routine system check, I discovered a file named svchost.exe located in the Downloads folder. This immediately raised a red flag. Normally, this executable should not reside in that location.
+As part of a routine system check, I discovered a file named **svchost.exe** located in the Downloads folder. This immediately raised a red flag. Normally, this executable should not reside in that location.
 
 ![Screenshot 2025-04-20 143946](https://github.com/user-attachments/assets/53f2b47a-fa7f-486b-abba-945a273f300e)
 
 
-As a reminder, Service Host (svchost.exe) is a critical system process in Windows that acts as a generic host for services running from DLL files. These services are grouped by function and run in separate instances of the Service Host process. The legitimate svchost.exe is typically located in C:\Windows\System32\, so finding it elsewhere is a strong indicator of compromise (IoC).
+As a reminder, Service Host (svchost.exe) is a critical **system process** in Windows that acts as a generic host for services running from DLL files. These services are grouped by function and run in separate instances of the Service Host process. The legitimate svchost.exe is typically located in C:\Windows\System32\, so finding it elsewhere is a strong indicator of compromise (IoC).
 
 To investigate further, I used PowerShell to query Sysmon logs and search for any svchost.exe executions occurring outside of the expected directory:
 ```powershell
@@ -32,6 +32,7 @@ The metadata of the suspicious file also provided valuable insight. By examining
   <img src="https://github.com/user-attachments/assets/bf8f07d2-4d7b-4d0e-b292-f350bf1ab3e8" alt="Screenshot svchost suspicious" width="400"/>
 </a>
 
+## Sysmon Logs
 Based on the creation date and time of the suspicious svchost.exe file, I narrowed down my search within Event Viewer (specifically the Sysmon logs). This allowed me to focus on a precise time window and correlate relevant events more effectively.
 
 During this time frame, multiple Process Create (Event ID 1) and File Creation (Event ID 11) events were recorded, all related to the svchost.exe located in the Downloads folder.
@@ -55,21 +56,20 @@ PS C:\WINDOWS\system32> CertUtil -hashfile C:\Windows\System32\svchost.exe sha25
 SHA256 hash of C:\Windows\System32\svchost.exe:
 324451797ac909a4dd40c7a2f7347ef91f6b7c786941ad5035f609c0fc15edaa
 ```
-```powershell
+## Schedules and Registry
+I checked the Windows Task Scheduler and the Run registry entries in HKLM\Software\Microsoft\Windows\CurrentVersion\Run for any programs configured to run automatically at boot time. This could include malicious persistence mechanisms that would allow the compromised svchost.exe to restart even after deletion.
 
-```
-```powershell
+<a href="https://github.com/user-attachments/assets/42ac9432-c1d7-49f6-9a18-cb96e5c054c5" target="_blank">
+  <img src="https://github.com/user-attachments/assets/42ac9432-c1d7-49f6-9a18-cb96e5c054c5" alt="Screenshot 2025-04-20 144848" width="400"/>
+</a>
 
-```
-```powershell
-
-```
-```powershell
-
-```
-```powershell
-
-```
-```powershell
+## Recap and findings
+After a file named svchost.exe was detected in the downloads folder, I began a thorough investigation to understand its origin and potential.
+Using a combination of different tools like PowerShell, Sysmon, and Registry Editor, I found that:
+- The svchost.exe process, located in the Downloads folder, is not legitimate. The legitimate process resides in C:\Windows\System32, and one of its parent processes is services.exe. In the case of our suspicious file, it's located in C:\Users\Ignacio\Downloads, and its parent process is python.exe.
+- A sha256 file comparison shows that this file is different from the original Windows file.
+- The Registry Editor indicates that no processes related to svchost.exe are active and running or scheduled to start at boot time.
+- The aforementioned analysis suggests that this file was a malicious Python script masquerading as a legitimate system process. I couldn't find any traces of code execution or related processes.
+- We suggest quarantining the file and performing an extensive analysis to identify its source and adjust the firewall rules accordingly.
 
 ```
