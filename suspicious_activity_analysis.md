@@ -1,3 +1,6 @@
+
+As part of a cleaning routine, I found a file named svchost.exe in the downloads folder. This particular binary caught my eye for a good reason... Usually this file it does not belong to the donwload folder. As a reminder, Service Host (svchost.exe) is a shared-service process that serves as a shell for loading services from DLL files. Services are organized into related host groups, and each group runs inside a different instance of the Service Host process. svchost.exe can be found in C:\Windows\System32\, so this was the first indicator.
+Next, I used PowerShell to look for files named svchost.exe that do not contain System32 in the output.
 ```powershell
 Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" | Where-Object { $_.Message -like "*svchost.exe*" -and $_.Message -notlike "*System32*" }
 ```
@@ -13,7 +16,9 @@ TimeCreated                      Id LevelDisplayName Message
 11/04/2025 16:14:51               1 Information      Process Create:...
 11/04/2025 16:14:50              11 Information      File created:...
 ```
+So, as I suspected, a process with this name was created outside of C:\Windows\System32.
 
+Another quick check was to compare the MD5 hash of the suspicious file with the original Windows file. As we can see, the files are not the same...
 ```plaintext
 PS C:\WINDOWS\system32> CertUtil -hashfile "C:\Users\Ignacio\Downloads\svchost.exe" MD5
 MD5 hash of C:\Users\Ignacio\Downloads\svchost.exe:
