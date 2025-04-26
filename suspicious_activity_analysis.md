@@ -1,3 +1,6 @@
+## Introduction
+This project aims to explore the power of Sysmon logs and how they can help uncover meaningful information from suspicious artifacts.
+
 ## 🔍 Detection
 As part of a routine system check, I discovered a file named **svchost.exe** located in the Downloads folder. This immediately raised a red flag. Normally, this executable should not reside in that location.
 
@@ -70,6 +73,6 @@ Using a combination of different tools like PowerShell, Sysmon, and Registry Edi
 - A sha256 file comparison shows that this file is different from the original Windows file.
 - The Registry Editor indicates that no processes related to svchost.exe are active and running or scheduled to start at boot time.
 - The aforementioned analysis suggests that this file was a malicious Python script masquerading as a legitimate system process. I couldn't find any traces of code execution or related processes.
-- We suggest quarantining the file and performing an extensive analysis to identify its source and adjust the firewall rules accordingly.
+- It is suggested to quarantine the file and performing an extensive analysis to identify its source and adjust the firewall rules accordingly.
 
-```
+### * As a future improvement, the script could be extended to send real-time email alerts using PowerShell's Send-MailMessage command and SMTP authentication.
