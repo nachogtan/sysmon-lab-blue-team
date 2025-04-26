@@ -1,4 +1,4 @@
-# Sysmon Blue Team Lab 🛡️
+# "Sysmon Blue Team Lab: Detecting Process Masquerading on Windows" 🛡️
 
 This repository serves as a **laboratory** to showcase my skills in **security monitoring** using **Sysmon** on Windows systems. In this lab, I will walk you through the installation of Sysmon, configuring it using the recommended **SwiftOnSecurity's Sysmon Config**, and performing basic analysis to detect suspicious activities.
 
@@ -52,7 +52,7 @@ Visit the official SwiftOnSecurity Sysmon Config repository: https://github.com/
 
 Download the latest sysmonconfig.xml file from the repository and save it in your Sysmon folder (where you extracted Sysmon).
 
-The following command will install the system, with the configuration file
+The following command will install Sysmon with the specified configuration file
 ```powershell
     sysmon -accepteula -i sysmonconfig-export.xml
 ```
@@ -81,11 +81,11 @@ Applications and Services Logs > Microsoft > Windows > Sysmon > Operational
 ```
 Then, filter for:
 
-. Event ID 1 – Process Creation
+- Event ID 1 – Process Creation
 
-. Image: Should not be running from C:\Windows\System32
+- Image: Should not be running from C:\Windows\System32
 
-. Parent Process: Typically, real svchost.exe is started by services.exe, not python.exe
+- Parent Process: Typically, real svchost.exe is started by services.exe, not python.exe
 
 Example Red Flags:
 ```plaintext
